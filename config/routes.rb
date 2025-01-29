@@ -5,7 +5,7 @@ Rails.application.routes.draw do
       get "users", to: "users#index"
       get "users/:id", to: "users#show"
       delete "users/:id", to: "users#destroy"
-      post "users/login" to: "users#userlogin"
+      post "users/login", to: "users#userLogin"  # Match the action name
     end
   end
 end

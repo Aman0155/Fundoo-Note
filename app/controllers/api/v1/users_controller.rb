@@ -1,43 +1,53 @@
 module Api
   module V1
     class UsersController < ApplicationController
-      skip_before_action :verify_authenticity_token
+      before_action :authorize_request, except: [:userLogin, :create]
 
       def index
-        users = User.all
+        users = UserService.get_users
         render json: users, status: :ok
       end
 
       def show
-        user = User.find(params[:id])
-        render json: user, status: :ok
-      rescue ActiveRecord::RecordNotFound
-        render json: { error: "user not found" }, status: :not_found
+        user = UserService.get_user(params[:id])
+        if user
+          render json: user, status: :ok
+        else
+          render json: { error: "User not found" }, status: :not_found
+        end
       end
 
       def create
-        Rails.logger.debug("User params: #{params.inspect}")
-
-        user = User.new(user_params)
-        if user.save
-          render json: user, status: :created
+        result = UserService.create_user(user_params)
+        if result[:success]
+          render json: result[:user], status: :created
         else
-          render json: { errors: user.errors.full_messages }, status: :unprocessable_entity
+          render json: { errors: result[:errors] }, status: :unprocessable_entity
         end
       end
 
       def destroy
-        user = User.find(params[:id])
-        user.destroy
-        render json: { message: 'User deleted successfully' }, status: :ok
-      rescue ActiveRecord::RecordNotFound
-        render json: { error: 'User not found' }, status: :not_found
+        result = UserService.delete_user(params[:id])
+        if result[:success]
+          render json: { message: result[:message] }, status: :ok
+        else
+          render json: { error: result[:error] }, status: :not_found
+        end
+      end
+
+      def userLogin
+        result = UserService.login_user(params[:email], params[:password])
+        if result[:success]
+          render json: { token: result[:token], message: result[:message] }, status: :ok
+        else
+          render json: { error: result[:error] }, status: :unauthorized
+        end
       end
 
       private
 
       def user_params
-        params.require(:user).permit(:name, :email, :phone_number, :password, :password_confirmation)
+        params.permit(:name, :email, :phone_number, :password, :password_confirmation)
       end
     end
   end
