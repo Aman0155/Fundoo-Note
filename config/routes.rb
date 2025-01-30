@@ -1,11 +1,10 @@
 Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
-      post "users", to: "users#create"
-      get "users", to: "users#index"
-      get "users/:id", to: "users#show"
-      delete "users/:id", to: "users#destroy"
-      post "users/login", to: "users#userLogin"  # Match the action name
+        post "users/" => "users#createUser"
+        post "users/login" => "users#login"
+        put "users/forgetPassword" => "users#forgetPassword"
+        put "users/resetPassword/:id" => "users#resetPassword"
     end
   end
 end

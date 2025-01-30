@@ -1,54 +1,66 @@
-module Api
-  module V1
-    class UsersController < ApplicationController
-      before_action :authorize_request, except: [:userLogin, :create]
+class Api::V1::UsersController < ApplicationController
+  skip_before_action :verify_authenticity_token
+  rescue_from StandardError, with: :handle_login_error
+  def createUser
+    result = UserService.createUser(user_params)
+    if result[:success]
+      render json: {message: result[:message]}, status: :created
+    else 
+      render json: {errors: result[:errors]}, status: :unprocessable_entity
+    end
+  end
 
-      def index
-        users = UserService.get_users
-        render json: users, status: :ok
-      end
+  def login
+    result = UserService.login(login_params)
+    if result[:success]
+      render json: {message: result[:message]}, status: :ok
+    else
+      render json: {errors: result[:errors]}, status: :unauthorized
+    end
+  end 
 
-      def show
-        user = UserService.get_user(params[:id])
-        if user
-          render json: user, status: :ok
-        else
-          render json: { error: "User not found" }, status: :not_found
-        end
-      end
+  def forgetPassword
+    result = UserService.forgetPassword(fp_params)
+    if result[:success]
+      render json: {message: result[:message]}, status: :ok
+    else
+      render json: {errors: "Email not registered"}, status: :not_found
+    end
+  end
 
-      def create
-        result = UserService.create_user(user_params)
-        if result[:success]
-          render json: result[:user], status: :created
-        else
-          render json: { errors: result[:errors] }, status: :unprocessable_entity
-        end
-      end
+  def resetPassword
+    user_id = params[:id]
+    result = UserService.resetPassword(user_id,rp_params)
+    if result[:success]
+      render json: {message: "Password updated successfully"}, status: :ok
+    else
+      render json: {errors: result[:errors]}, status: :unprocessable_entity
+    end
+  end
 
-      def destroy
-        result = UserService.delete_user(params[:id])
-        if result[:success]
-          render json: { message: result[:message] }, status: :ok
-        else
-          render json: { error: result[:error] }, status: :not_found
-        end
-      end
+  private 
 
-      def userLogin
-        result = UserService.login_user(params[:email], params[:password])
-        if result[:success]
-          render json: { token: result[:token], message: result[:message] }, status: :ok
-        else
-          render json: { error: result[:error] }, status: :unauthorized
-        end
-      end
+  def user_params
+    params.require(:user).permit(:name, :email, :password, :phone_number)
+  end
 
-      private
+  def login_params
+    params.require(:user).permit(:email, :password)
+  end
 
-      def user_params
-        params.permit(:name, :email, :phone_number, :password, :password_confirmation)
-      end
+  def fp_params
+    params.require(:user).permit(:email)
+  end
+
+  def rp_params
+    params.require(:user).permit(:new_password, :otp)
+  end
+
+  def handle_login_error(exception)
+    if exception.message == "Invalid email"
+      render json: {errors: "Invalid email"}, status: :bad_request
+    else 
+      render json: {errors: "Invalid password"}, status: :bad_request
     end
   end
 end

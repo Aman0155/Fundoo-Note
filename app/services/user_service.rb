@@ -1,43 +1,51 @@
-# app/services/user_service.rb
-
 class UserService
-  def self.create_user(user_params)
+  def self.createUser(user_params)
     user = User.new(user_params)
     if user.save
-      return { user: user, success: true }
-    else
-      return { errors: user.errors.full_messages, success: false }
+      return {success: true, message: "User created successfully"}
+    else 
+      return {success: false, errors: user.errors.full_messages}
     end
   end
 
-  def self.login_user(email, password)
-    user = User.find_by(email: email)
-    
-    if user && user.authenticate(password)
-      token = JsonWebToken.encode(user_id: user.id, name: user.name, email: user.email)
-      return { token: token, message: 'Login successful', success: true }
-    else
-      return { error: 'Invalid email or password', success: false }
-    end
+  def self.login(login_params)
+    user = User.find_by(email: login_params[:email])
+    raise StandardError, "Invalid email" if user.nil?
+    raise StandardError, "Invalid password" unless user.authenticate(login_params[:password])
+    if user && user.authenticate(login_params[:password])
+      token = JsonWebToken.encode(id: user.id, name: user.name, email: user.email)
+      return {success: true, message: "Login successful", token: token}
+    else 
+      return {success: false, errors: "Invalid email or password"}
+    end    
   end
-
-  def self.delete_user(user_id)
-    user = User.find_by(id: user_id)
-    
+  
+  def self.forgetPassword(fp_params)
+    user = User.find_by(email: fp_params[:email])
     if user
-      user.destroy
-      return { message: 'User deleted successfully', success: true }
+      @@otp = rand(100000..999999)
+      UserMailer.text_mail(user.email,@@otp).deliver_now
+      return {success: true, message: "OTP has been sent to #{user.email}, check your inbox"}
     else
-      return { error: 'User not found', success: false }
+      return {success: false}
     end
   end
 
-  def self.get_users
-    User.all
+  def self.resetPassword(user_id,rp_params)
+    if rp_params[:otp].to_i == @@otp
+      user = User.find_by(id: user_id)
+      if user 
+        user.update(password: rp_params[:new_password])
+        @@otp = nil
+        return {success: true}
+      else 
+        return {success: false, errors: "User not found"}
+      end
+    else
+      return {success: false, errors: "Invalid OTP"}
+    end
   end
 
-  def self.get_user(user_id)
-    User.find_by(id: user_id)
-  end
+  private 
+  @@otp = nil
 end
-9
