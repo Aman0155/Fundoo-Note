@@ -56,4 +56,13 @@ def self.archiveToggle(note_id)
   end
 end
 
+  def self.changeColor(note_id, new_color)
+    note = Note.find_by(id: note_id)
+    if note
+      note.update(color: new_color)
+      return { success: true, message: "Color changed successfully" }
+    else
+      return { success: false, errors: "Note not found" }
+    end
+  end
 end
