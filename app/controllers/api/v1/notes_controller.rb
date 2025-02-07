@@ -23,6 +23,16 @@ class Api::V1::NotesController < ApplicationController
     end
   end
 
+  def trashToggle
+    note_id = params[:id]
+    result = NoteService.trashToggle(note_id)
+    if result[:success]
+      render json: {message: result[:message]}, status: :ok
+    else
+      render json: {errors: result[:errors]}, status: :bad_request
+    end
+  end
+
  
  
   private
