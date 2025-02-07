@@ -24,16 +24,32 @@ class UserService
     user = User.find_by(email: fp_params[:email])
     if user
       @@otp = rand(100000..999999)
-      UserMailer.text_mail(user.email,@@otp).deliver_now
+      @@otp_generated_at = Time.current
+      # UserMailer.text_mail(user.email,@@otp).deliver_now
+      send_otp_to_queue(user.email,@@otp)
+      OtpWorker.start
+      #UserMailer.enqueue_text_email(user,@@otp)
       return {success: true, message: "OTP has been sent to #{user.email}, check your inbox"}
     else
       return {success: false}
     end
   end
 
+  def self.send_otp_to_queue(email, otp)
+    connection = Bunny.new
+    connection.start
+    channel = connection.create_channel
+    queue = channel.queue('otp_queue', durable: true)
+
+    message = { email: email, otp: otp}.to_json
+    queue.publish(message, persistent: true)
+
+    connection.close
+  end
+
   def self.resetPassword(user_id,rp_params)
-    if rp_params[:otp].to_i == @@otp
-      user = User.find_by(id: user_id)
+    if rp_params[:otp].to_i == @@otp && (Time.current-@@otp_generated_at< 1.minute)
+      user = User.find_by(id: user_id) 
       if user 
         user.update(password: rp_params[:new_password])
         @@otp = nil
@@ -48,4 +64,5 @@ class UserService
 
   private 
   @@otp = nil
+  @@otp_generated_at=nil
 end
