@@ -12,4 +12,19 @@ class NoteService
       return {success: false, error: "Couldn't add note"}
     end
   end
+
+  def self.getNoteById(note_id, token)
+    user_data = JsonWebToken.decode(token)
+    return { success: false, error: "Unauthorized access" } unless user_data
+  
+    note = Note.find_by(id: note_id)
+    return { success: false, error: "Note not found" } unless note
+  
+    if user_data[:id] == note.user_id
+      { success: true, note: note }
+    else
+      { success: false, error: "Token not valid for this note" }
+    end
+  end
+
 end

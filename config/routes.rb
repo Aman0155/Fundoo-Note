@@ -7,7 +7,7 @@
           put "users/resetPassword/:id" => "users#resetPassword"
           # Api's for note entity
           post "notes/create_note" => "notes#create"
-          
+          get "notes/getNoteById/:id" => "notes#getNoteById"
       end
     end
   end
