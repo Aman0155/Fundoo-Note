@@ -71,8 +71,9 @@ end
     @current_user = JsonWebToken.decode(token)
 
     unless @current_user
-      return { success: false, error: "Unauthorized access" }
+      return { success: false,   error: "Unauthorized" }
     end
+
     notes = @current_user.notes
 
     if notes.any?
@@ -81,4 +82,5 @@ end
       return { success: false, error: "No notes found" }
     end
   end
+
 end
