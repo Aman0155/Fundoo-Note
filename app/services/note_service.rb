@@ -65,4 +65,20 @@ end
       return { success: false, errors: "Note not found" }
     end
   end
+  
+  def self.getNotes(token)
+   
+    @current_user = JsonWebToken.decode(token)
+
+    unless @current_user
+      return { success: false, error: "Unauthorized access" }
+    end
+    notes = @current_user.notes
+
+    if notes.any?
+      return { success: true, notes: notes }
+    else
+      return { success: false, error: "No notes found" }
+    end
+  end
 end

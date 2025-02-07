@@ -10,7 +10,8 @@
           get "notes/getNoteById/:id" => "notes#getNoteById"
           put "notes/trashToggle/:id" => "notes#trashToggle"
           put "notes/archiveToggle/:id" => "notes#archiveToggle" 
-           put "notes/changeColor/:id" => "notes#changeColor"
+          put "notes/changeColor/:id" => "notes#changeColor"
+          get "notes"  => "notes#index" 
       end
     end
   end

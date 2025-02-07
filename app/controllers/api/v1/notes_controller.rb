@@ -53,9 +53,20 @@ class Api::V1::NotesController < ApplicationController
       render json: { errors: result[:errors] }, status: :bad_request
     end
   end
+  
+  
+ def index
+  token = request.headers["Authorization"]&.split(" ")&.last
+  result = NoteService.getNotes(token)
 
- 
- 
+  if result[:success]
+    render json: result[:notes], status: :ok
+  else
+    render json: { errors: result[:error] }, status: :unauthorized
+  end
+end
+
+  
   private
 
   def note_params
