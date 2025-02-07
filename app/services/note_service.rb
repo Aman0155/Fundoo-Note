@@ -42,4 +42,18 @@ def self.trashToggle(note_id)
   end
 end
 
+def self.archiveToggle(note_id)
+  note = Note.find_by(id: note_id)
+  if note
+    if note.isArchive == false
+      note.update(isArchive: true)
+    else  
+      note.update(isArchive: false)
+    end
+    return { success: true, message: " status toggled" }
+  else
+    return { success: false, errors: "Couldn't toggle the  status" }
+  end
+end
+
 end

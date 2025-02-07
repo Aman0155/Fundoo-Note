@@ -9,6 +9,7 @@
           post "notes/create_note" => "notes#create"
           get "notes/getNoteById/:id" => "notes#getNoteById"
           put "notes/trashToggle/:id" => "notes#trashToggle"
+          put "notes/archiveToggle/:id" => "notes#archiveToggle" 
       end
     end
   end
