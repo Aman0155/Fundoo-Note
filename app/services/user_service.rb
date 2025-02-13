@@ -9,12 +9,13 @@ class UserService
   end
 
   def self.login(login_params)
+
     user = User.find_by(email: login_params[:email])
     raise StandardError, "Invalid email" if user.nil?
     raise StandardError, "Invalid password" unless user.authenticate(login_params[:password])
     if user && user.authenticate(login_params[:password])
       token = JsonWebToken.encode(id: user.id, name: user.name, email: user.email)
-      { success: true, message: "Login successful", token: token }
+      { success: true, message: "Login successfuld", token: token }
     else
       { success: false, errors: "Invalid email or password" }
     end
@@ -25,7 +26,7 @@ class UserService
     if user
       @@otp = rand(100000..999999)
       @@otp_generated_at = Time.current
-      # UserMailer.text_mail(user.email,@@otp).deliver_now
+    +  # UserMailer.text_mail(user.email,@@otp).deliver_now
       send_otp_to_queue(user.email, @@otp)
       Thread.new { OtpWorker.start }
       # UserMailer.enqueue_text_email(user,@@otp)

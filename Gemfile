@@ -72,3 +72,6 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "factory_bot_rails", "~> 6.4"
+gem 'faker'
