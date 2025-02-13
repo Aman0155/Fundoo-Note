@@ -1,28 +1,41 @@
-require 'redis'
-
 class NoteService
   @@redis = Redis.new(host: "localhost", port: 6379)
-
   def self.addNote(note_params, token)
-    @current_user = JsonWebToken.decode(token)
-    unless @current_user
-      return { success: false, error: "Unauthorized access" }, status: :unauthorized
+    user_data = JsonWebToken.decode(token)
+    unless user_data
+      return { success: false, error: "Unauthorized access" }
     end
-    note = @current_user.notes.new(note_params)
+    note = user_data.notes.new(note_params)
     if note.save
-      return { success: true, message: "Note added successfully" }
+      { success: true, message: "Note added successfully" }
     else
-      return { success: false, error: "Couldn't add note" }
+      { success: false, error: note.errors.full_messages}
     end
+  end
+
+  def self.getNote(token)
+    @current_user = JsonWebToken.decode(token)
+    return { success: false, error: "Unauthorized access" } unless @current_user
+
+    user_id = @current_user[:id]
+    cache_key = "user_#{user_id}_notes"
+    cached_notes = @@redis.get(cache_key)
+    if cached_notes
+      return { success: true, notes: JSON.parse(cached_notes) }
+    end
+    notes = @current_user.notes
+    return { success: false, error: "No notes found" } unless notes.any?
+    @@redis.set(cache_key, notes.to_json, ex: 300)
+
+    { success: true, notes: notes }
   end
 
   def self.getNoteById(note_id, token)
     user_data = JsonWebToken.decode(token)
-    return { success: false, error: "Unauthorized access" } unless user_data
-
     note = Note.find_by(id: note_id)
-    return { success: false, error: "Note not found" } unless note
-
+    unless user_data
+      return { success: false, error: "Unauthorized access" }
+    end
     if user_data[:id] == note.user_id
       { success: true, note: note }
     else
@@ -38,9 +51,9 @@ class NoteService
       else
         note.update(isDeleted: false)
       end
-      return { success: true, message: "Status toggled" }
+      { success: true, message: "Status toggled" }
     else
-      return { success: false, errors: "Couldn't toggle the status" }
+      { success: false, errors: "Couldn't toggle the status" }
     end
   end
 
@@ -49,39 +62,22 @@ class NoteService
     if note
       if note.isArchive == false
         note.update(isArchive: true)
-      else  
+      else
         note.update(isArchive: false)
       end
-      return { success: true, message: "Status toggled" }
+      { success: true, message: "Status toggled" }
     else
-      return { success: false, errors: "Couldn't toggle the status" }
+      { success: false, errors: "Couldn't toggle the status" }
     end
   end
 
-  def self.changeColor(note_id, new_color)
+  def self.changeColor(note_id, color_params)
     note = Note.find_by(id: note_id)
     if note
-      note.update(color: new_color)
-      return { success: true, message: "Color changed successfully" }
+      note.update(color: color_params[:color])
+      { success: true, message: "Color changed" }
     else
-      return { success: false, errors: "Note not found" }
+      { success: false, errors: "Couldn't change the color" }
     end
-  end
-
-  def self.getNotes(token)
-    @current_user = JsonWebToken.decode(token)
-    return { success: false, error: "Unauthorized access" } unless @current_user
-
-    user_id = @current_user[:id]
-    cache_key = "user_#{user_id}_notes"
-    cached_notes = @@redis.get(cache_key)
-    if cached_notes
-      return { success: true, notes: JSON.parse(cached_notes) } 
-    end
-    notes = @current_user.notes
-    return { success: false, error: "No notes found" } unless notes.any?
-    @@redis.set(cache_key, notes.to_json, ex: 300)
-
-    { success: true, notes: notes }
   end
 end

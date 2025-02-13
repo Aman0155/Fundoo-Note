@@ -23,6 +23,14 @@ gem "bcrypt", "~> 3.1.7"
 gem "bunny"
 gem "redis"
 
+group :development, :test do
+  gem "rswag-ui"
+  gem "rswag-api"
+  gem "rswag-specs"
+   gem 'rspec-rails'
+end
+
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
 

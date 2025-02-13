@@ -1,25 +1,33 @@
 class Api::V1::NotesController < ApplicationController
   skip_before_action :verify_authenticity_token
-
-  def create
+  def addNote
     token = request.headers["Authorization"]&.split(" ")&.last
-    result = NoteService.addNote(note_params, token)
+    result = NoteService.addNote(note_params,token)
     if result[:success]
-      render json: { message: result[:message] }, status: :ok
+      render json: {message: result[:message]}, status: :ok
     else
-      render json: { errors: result[:error] }, status: :unprocessable_entity
+      render json: {errors: result[:error]}, status: :unprocessable_entity
+    end 
+  end
+
+  def getNote
+    token = request.headers["Authorization"]&.split(" ")&.last
+    result = NoteService.getNote(token)
+    if result[:success]
+      render json: result[:notes], status: :ok
+    else 
+      render json: {errors: result[:error]}, status: :unprocessable_entity
     end
   end
 
-  
   def getNoteById
-    token =request.headers["Authorization"]&.split(" ")&.last
+    token = request.headers["Authorization"]&.split(" ")&.last
     note_id = params[:id]
-    result = NoteService.getNoteById(note_id, token)
+    result = NoteService.getNoteById(note_id,token)
     if result[:success]
       render json: result[:note], status: :ok
     else
-      render json: { errors: result[:error]}, status: :unauthorized
+      render json: {errors: result[:error]}
     end
   end
 
@@ -39,37 +47,26 @@ class Api::V1::NotesController < ApplicationController
     if result[:success]
       render json: {message: result[:message]}, status: :ok
     else
-      render json: {message: result[:error]}, status: :bad_request
+      render json: {errors: result[:errors]}, status: :bad_request
     end
   end
 
   def changeColor
     note_id = params[:id]
-    new_color = params[:color]
-    result = NoteService.changeColor(note_id, new_color)
+    result = NoteService.changeColor(note_id,color_params)
     if result[:success]
-      render json: { message: result[:message] }, status: :ok
+      render json: {message: result[:message]}, status: :ok
     else
-      render json: { errors: result[:errors] }, status: :bad_request
+      render json: {errors: result[:errors]}, status: :bad_request
     end
   end
   
-  
- def index
-  token = request.headers["Authorization"]&.split(" ")&.last
-  result = NoteService.getNotes(token)
-
-  if result[:success]
-    render json: result[:notes], status: :ok
-  else
-    render json: { errors: result[:error] }, status: :unauthorized
-  end
-end
-
-  
   private
-
   def note_params
     params.require(:note).permit(:title, :content)
+  end
+
+  def color_params
+    params.require(:note).permit(:color)
   end
 end

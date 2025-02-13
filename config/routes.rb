@@ -1,17 +1,21 @@
-  Rails.application.routes.draw do
+Rails.application.routes.draw do
+  mount Rswag::Ui::Engine => "/api-docs"
+  mount Rswag::Api::Engine => "/api-docs"
     namespace :api do
       namespace :v1 do
-          post "users/" => "users#createUser"
+          # APIs for User entity
+          post "users" => "users#createUser"
           post "users/login" => "users#login"
           put "users/forgetPassword" => "users#forgetPassword"
           put "users/resetPassword/:id" => "users#resetPassword"
-          # Api's for note entity
-          post "notes/create_note" => "notes#create"
+
+          # APIs for Note entity
+          post "notes" => "notes#addNote"
+          get "notes/getNote" => "notes#getNote"
           get "notes/getNoteById/:id" => "notes#getNoteById"
-          put "notes/trashToggle/:id" => "notes#trashToggle"
-          put "notes/archiveToggle/:id" => "notes#archiveToggle" 
+          delete "notes/trashToggle/:id" => "notes#trashToggle"
+          put "notes/archiveToggle/:id" => "notes#archiveToggle"
           put "notes/changeColor/:id" => "notes#changeColor"
-          get "notes"  => "notes#index" 
       end
     end
-  end
+end
