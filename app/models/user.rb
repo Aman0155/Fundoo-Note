@@ -8,6 +8,8 @@ class User < ApplicationRecord
     with: /\A(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()])[A-Za-z\d!@#$%^&*()]{8,12}\z/,
     message: "Password must be at least 8 characters long, include an uppercase letter, a number, and a special character."
   }
-  validates :phone_number, presence: true, uniqueness: true, format: { with: /\A[+]?[6-9]\d{9,14}\z/, message: "Must be a valid phone number" }
+  validates :phone_number, presence: true, format: { with: /\A\+?\d{10,15}\z/, message: "Must be a valid phone number" }
+
+
   
 end

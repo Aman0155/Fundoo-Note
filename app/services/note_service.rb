@@ -60,10 +60,10 @@ class NoteService
   def self.archiveToggle(note_id)
     note = Note.find_by(id: note_id)
     if note
-      if note.isArchive == false
-        note.update(isArchive: true)
+      if note.isArchived == false
+        note.update(isArchived: true)
       else
-        note.update(isArchive: false)
+        note.update(isArchived: false)
       end
       { success: true, message: "Status toggled" }
     else

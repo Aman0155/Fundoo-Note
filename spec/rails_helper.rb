@@ -69,9 +69,13 @@ RSpec.configure do |config|
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
-
+  #  RSpec.configure do |config|
+  #   config.before(:each) { Faker::UniqueGenerator.clear }
+  # end
   RSpec.configure do |config|
-    config.include FactoryBot::Syntax::Methods
+    config.include FactoryBot::Syntax::Methods  # Add this line
   end
+  
+
   
 end
